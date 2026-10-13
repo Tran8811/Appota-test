@@ -1,0 +1,6 @@
+[
+  {"id": "an",   "name": "An (Marketing, Công ty B)",      "units": ["Appota Group", "Công ty B", "Marketing"],    "level": 1},
+  {"id": "binh", "name": "Bình (Kỹ thuật, Công ty C)",     "units": ["Appota Group", "Công ty C", "Kỹ thuật"],     "level": 1},
+  {"id": "chi",  "name": "Chi (Nhân sự, Công ty B)",       "units": ["Appota Group", "Công ty B", "Nhân sự"],      "level": 3},
+  {"id": "gd",   "name": "Giám đốc (Ban Giám đốc, Cty B)", "units": ["Appota Group", "Công ty B", "Ban Giám đốc"], "level": 5}
+]

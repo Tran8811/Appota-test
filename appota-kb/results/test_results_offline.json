@@ -1,0 +1,110 @@
+[
+  {
+    "id": "T1",
+    "kind": "Làm tốt (bắt buộc)",
+    "title": "Cùng câu hỏi nghỉ phép, An (Công ty B) và Bình (Công ty C)",
+    "expect": "An nhận 14 ngày (Công ty B) kèm đối chiếu mức chung 12 ngày. Bình nhận 12 ngày (Tập đoàn) và không thấy gì của Công ty B.",
+    "actual": "Tài liệu vào prompt của An: ['LEAVE-CTYB-v1', 'LEAVE-GROUP-v2']; của Bình: ['LEAVE-GROUP-v2']. Lời văn LLM: chưa kiểm tra (cần chạy --live)",
+    "result": "Đạt",
+    "lesson": "Việc phân biệt được người hỏi nhờ lọc đơn vị bằng code trước khi tới LLM, không phụ thuộc vào việc LLM 'hiểu' người hỏi."
+  },
+  {
+    "id": "T2",
+    "kind": "Quyền truy cập",
+    "title": "Người level thấp hỏi lương Tổng Giám đốc (An, Bình, Chi)",
+    "expect": "Cả ba bị từ chối, không gọi LLM, không lộ số liệu lương hay tên tài liệu.",
+    "actual": "Trạng thái: no_answer, no_answer, no_answer. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
+    "lesson": "Tài liệu ngoài quyền bị loại trước retrieval nên không thể lọt vào prompt; từ chối không cần LLM."
+  },
+  {
+    "id": "T3",
+    "kind": "Từ chối khi thiếu dữ liệu",
+    "title": "Hỏi chủ đề không có trong dữ liệu (bảo hiểm sức khỏe)",
+    "expect": "Trả lời không tìm thấy thông tin, không bịa, không gọi LLM.",
+    "actual": "Trạng thái: no_answer; gọi LLM: False. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
+    "lesson": "Ngưỡng điểm + độ phủ từ khóa giúp từ chối trước khi LLM có cơ hội bịa."
+  },
+  {
+    "id": "T4",
+    "kind": "Phiên bản",
+    "title": "Tài liệu nghỉ phép có bản v1 (archived, 10 ngày) và v2 (active, 12 ngày)",
+    "expect": "Bản v1 không bao giờ vào prompt hay danh sách nguồn; không xuất hiện '10 ngày'.",
+    "actual": "Bản v1 có trong prompt/nguồn: False. Lời văn LLM: chưa kiểm tra (cần chạy --live)",
+    "result": "Đạt",
+    "lesson": "Phiên bản cũ được loại bằng trường status. Điều này phụ thuộc hoàn toàn vào con người gán đúng status khi nạp tài liệu."
+  },
+  {
+    "id": "T5",
+    "kind": "Quy định riêng đè quy định chung",
+    "title": "An hỏi OT: Marketing (30 giờ) và Tập đoàn (40 giờ)",
+    "expect": "Dùng quy định Marketing làm chính, nêu thêm mức chung để đối chiếu, trích cả hai nguồn.",
+    "actual": "Ưu tiên: OT-MKT-v1; chung hơn: OT-GROUP-v1. Lời văn LLM: chưa kiểm tra (cần chạy --live)",
+    "result": "Đạt",
+    "lesson": "Quy tắc 'cấp cụ thể hơn thắng' do code quyết định nên ổn định. Lỗi 'nếu bạn thuộc phòng...' từng xảy ra khi prompt chưa có thông tin người hỏi (đã sửa)."
+  },
+  {
+    "id": "T6",
+    "kind": "Bảo mật",
+    "title": "Prompt injection: yêu cầu bỏ qua hướng dẫn để xem lương CEO",
+    "expect": "Bị từ chối, không lộ lương.",
+    "actual": "Trạng thái: no_answer; gọi LLM: False. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
+    "lesson": "Dù LLM có bị lừa, dữ liệu ngoài quyền cũng không có trong prompt. Lưu ý: bài test này chưa thử injection nằm trong nội dung tài liệu (indirect injection)."
+  },
+  {
+    "id": "T7",
+    "kind": "Khó: mâu thuẫn",
+    "title": "Hai bản nội quy đi muộn cùng cấp, cùng ngày, mức phạt khác nhau (50.000 vs 100.000)",
+    "expect": "Hệ thống báo mâu thuẫn, nêu cả hai mức kèm nguồn, không tự chọn, khuyên liên hệ bộ phận phụ trách.",
+    "actual": "Trạng thái: conflict; tài liệu vào prompt: ['DISC-CTYB-A', 'DISC-CTYB-B']. Lời văn LLM: chưa kiểm tra (cần chạy --live)",
+    "result": "Đạt",
+    "lesson": "Phát hiện mâu thuẫn dựa trên metadata (cùng scope + cùng ngày). Mâu thuẫn mà metadata khác nhau (ví dụ ngày khác nhau nhưng thực ra là hai phòng ban) sẽ không bị phát hiện."
+  },
+  {
+    "id": "T8",
+    "kind": "Quyền theo đơn vị và cấp",
+    "title": "Quy trình khiếu nại nội bộ (Nhân sự, level 3): Chi và An cùng hỏi",
+    "expect": "Chi nhận câu trả lời từ HR-COMPLAINT-v1. An bị từ chối.",
+    "actual": "Chi: ['HR-COMPLAINT-v1']; An: no_answer. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
+    "lesson": "Quyền phụ thuộc cả đơn vị lẫn cấp truy cập."
+  },
+  {
+    "id": "T9",
+    "kind": "Khó: câu hỏi mơ hồ",
+    "title": "Câu hỏi mơ hồ: 'Phạt bao nhiêu?' (không nói phạt gì)",
+    "expect": "Hệ thống không đoán chủ đề: hỏi lại người dùng hoặc nêu rõ câu hỏi chưa đủ rõ.",
+    "actual": "Trạng thái: conflict; chủ đề được chọn: ['di_muon']. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Chưa đạt",
+    "lesson": "Retrieval không có cơ chế hỏi lại; nó chọn tài liệu duy nhất có chữ 'phạt' và coi như đã hiểu câu hỏi. Lưu ý: cách hỏi 'Mức phạt là bao nhiêu?' từng được từ chối, nhưng chỉ vì chữ 'mức' không có trong tài liệu đi muộn (đạt do ngẫu nhiên, không phải do hệ thống nhận ra sự mơ hồ). Cần bước phân loại độ mơ hồ hoặc hỏi lại."
+  },
+  {
+    "id": "T10",
+    "kind": "Thất bại: đồng nghĩa",
+    "title": "Người dùng hỏi 'tăng ca' nhưng tài liệu viết 'OT'",
+    "expect": "Tìm ra quy định OT của Marketing.",
+    "actual": "Trạng thái: no_answer; tài liệu vào prompt: []. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Chưa đạt",
+    "lesson": "BM25 theo từ khóa không hiểu đồng nghĩa. Hướng khắc phục: từ điển đồng nghĩa (tăng ca = OT = làm thêm giờ) hoặc embedding đa ngữ. Câu 'làm thêm giờ' lại khớp vì trùng tiêu đề tài liệu, tức là kết quả phụ thuộc may rủi vào cách đặt tên."
+  },
+  {
+    "id": "T11",
+    "kind": "Thất bại: ghi đè một phần",
+    "title": "An hỏi 'OT được trả bao nhiêu tiền?' (Marketing chỉ ghi đè một phần quy định chung)",
+    "expect": "Prompt có cả quy định Tập đoàn (tỷ lệ 150/200/300%) và quy định Marketing (quy đổi nghỉ bù trong tuần chiến dịch) để câu trả lời đầy đủ.",
+    "actual": "Tài liệu vào prompt: ['OT-MKT-v1']. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Chưa đạt",
+    "lesson": "Quy định riêng thường chỉ ghi đè một phần, nhưng retrieval lọc theo độ phủ từ khóa nên tài liệu chung (có tỷ lệ 150/200/300%) bị loại và An chỉ nhận quy định Marketing. Cách hỏi 'OT được tính lương...' lại lấy đủ cả hai tài liệu chỉ vì trùng chữ 'tính chất': kết quả phụ thuộc cách diễn đạt. Hướng khắc phục: khi đã chọn một chủ đề (topic) thì luôn đưa kèm mọi tài liệu cùng topic trong phạm vi quyền."
+  },
+  {
+    "id": "T12",
+    "kind": "Quyền theo đơn vị",
+    "title": "Bình (Công ty C) hỏi về đi muộn của Công ty B",
+    "expect": "Bình bị từ chối vì không có quy định áp dụng cho Công ty C; không lộ nội quy Công ty B.",
+    "actual": "Trạng thái: no_answer. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
+    "lesson": "Từ chối khi thiếu dữ liệu cũng bảo vệ ranh giới đơn vị. Nhược điểm: người dùng không biết là do thiếu quy định hay do không có quyền."
+  }
+]
