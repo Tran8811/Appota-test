@@ -16,10 +16,16 @@ except Exception:
     pass
 
 
+# Đường dẫn theo vị trí của app.py (Streamlit Cloud chạy từ thư mục gốc của repo,
+# nên không được dùng đường dẫn tương đối với thư mục làm việc hiện tại)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 @st.cache_data
 def load():
-    docs, errors = load_docs("data")
-    users = json.load(open("users.json", encoding="utf-8"))
+    docs, errors = load_docs(os.path.join(BASE_DIR, "data"))
+    with open(os.path.join(BASE_DIR, "users.json"), encoding="utf-8") as f:
+        users = json.load(f)
     return docs, errors, users
 
 
