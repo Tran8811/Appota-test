@@ -44,7 +44,7 @@ kb/answer.py     prompt, gọi Gemini, kiểm tra đầu ra
 app.py           giao diện Streamlit (có chế độ debug)
 tests/           unit test + bộ kiểm thử Mission 2 (run_tests.py)
 results/         kết quả kiểm thử
-docs/            trả lời 3 câu hỏi, kịch bản video, checklist nộp bài
+docs/            trả lời 3 câu hỏi, nhật ký bằng chứng sử dụng AI
 ```
 
 ## Dữ liệu giả lập
