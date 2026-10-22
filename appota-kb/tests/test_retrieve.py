@@ -46,6 +46,10 @@ class TestSameQuestionDifferentUsers(unittest.TestCase):
 
 
 class TestRefusalAndPermission(unittest.TestCase):
+    def test_vietnamese_overtime_synonym_retrieves_ot_documents(self):
+        result = run("an", "Quy định tăng ca thế nào?")
+        self.assertIn("OT-MKT-v1", primary_ids(result))
+
     def test_salary_not_retrievable_by_low_level(self):
         for uid in ("an", "binh", "chi"):
             r = run(uid, "Lương của Tổng Giám đốc là bao nhiêu?")
@@ -72,14 +76,6 @@ class TestConflict(unittest.TestCase):
 
     def test_other_company_does_not_see_conflict_docs(self):
         self.assertEqual(run("binh", "Đi muộn bị phạt bao nhiêu?")["status"], "no_answer")
-
-
-class TestKnownLimitations(unittest.TestCase):
-    @unittest.expectedFailure
-    def test_synonym_tang_ca_not_matched(self):
-        # Tài liệu ghi "OT"; người dùng hỏi "tăng ca". BM25 theo từ khóa không khớp.
-        r = run("an", "Quy định tăng ca thế nào?")
-        self.assertEqual(primary_ids(r), ["OT-MKT-v1"])
 
 
 if __name__ == "__main__":

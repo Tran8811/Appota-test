@@ -76,17 +76,17 @@
     "kind": "Khó: câu hỏi mơ hồ",
     "title": "Câu hỏi mơ hồ: 'Phạt bao nhiêu?' (không nói phạt gì)",
     "expect": "Hệ thống không đoán chủ đề: hỏi lại người dùng hoặc nêu rõ câu hỏi chưa đủ rõ.",
-    "actual": "Trạng thái: conflict; chủ đề được chọn: ['di_muon']. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
-    "result": "Chưa đạt",
-    "lesson": "Retrieval không có cơ chế hỏi lại; nó chọn tài liệu duy nhất có chữ 'phạt' và coi như đã hiểu câu hỏi. Lưu ý: cách hỏi 'Mức phạt là bao nhiêu?' từng được từ chối, nhưng chỉ vì chữ 'mức' không có trong tài liệu đi muộn (đạt do ngẫu nhiên, không phải do hệ thống nhận ra sự mơ hồ). Cần bước phân loại độ mơ hồ hoặc hỏi lại."
+    "actual": "Trạng thái: clarify; chủ đề được chọn: []. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
+    "lesson": "Câu hỏi chỉ có từ khái quát như 'phạt' yêu cầu làm rõ trước khi retrieval/LLM, thay vì suy đoán tài liệu."
   },
   {
     "id": "T10",
     "kind": "Thất bại: đồng nghĩa",
     "title": "Người dùng hỏi 'tăng ca' nhưng tài liệu viết 'OT'",
     "expect": "Tìm ra quy định OT của Marketing.",
-    "actual": "Trạng thái: no_answer; tài liệu vào prompt: []. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
-    "result": "Chưa đạt",
+    "actual": "Trạng thái: ok; tài liệu vào prompt: ['OT-GROUP-v1', 'OT-MKT-v1']. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
     "lesson": "BM25 theo từ khóa không hiểu đồng nghĩa. Hướng khắc phục: từ điển đồng nghĩa (tăng ca = OT = làm thêm giờ) hoặc embedding đa ngữ. Câu 'làm thêm giờ' lại khớp vì trùng tiêu đề tài liệu, tức là kết quả phụ thuộc may rủi vào cách đặt tên."
   },
   {
@@ -94,9 +94,9 @@
     "kind": "Thất bại: ghi đè một phần",
     "title": "An hỏi 'OT được trả bao nhiêu tiền?' (Marketing chỉ ghi đè một phần quy định chung)",
     "expect": "Prompt có cả quy định Tập đoàn (tỷ lệ 150/200/300%) và quy định Marketing (quy đổi nghỉ bù trong tuần chiến dịch) để câu trả lời đầy đủ.",
-    "actual": "Tài liệu vào prompt: ['OT-MKT-v1']. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
-    "result": "Chưa đạt",
-    "lesson": "Quy định riêng thường chỉ ghi đè một phần, nhưng retrieval lọc theo độ phủ từ khóa nên tài liệu chung (có tỷ lệ 150/200/300%) bị loại và An chỉ nhận quy định Marketing. Cách hỏi 'OT được tính lương...' lại lấy đủ cả hai tài liệu chỉ vì trùng chữ 'tính chất': kết quả phụ thuộc cách diễn đạt. Hướng khắc phục: khi đã chọn một chủ đề (topic) thì luôn đưa kèm mọi tài liệu cùng topic trong phạm vi quyền."
+    "actual": "Tài liệu vào prompt: ['OT-GROUP-v1', 'OT-MKT-v1']. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)",
+    "result": "Đạt",
+    "lesson": "Sau khi xác định chủ đề từ tài liệu phù hợp, hệ thống đưa các nguồn cùng chủ đề mà người dùng được phép xem vào ngữ cảnh, để không bỏ sót quy định chung chỉ vì câu chữ khác nhau."
   },
   {
     "id": "T12",

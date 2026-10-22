@@ -1,0 +1,28 @@
+doc_id: TRAVEL-EXPENSE-PDF-v1
+document_id: TRAVEL-EXPENSE-PDF-v1
+document_title: Quy trình chi phí công tác Công ty B (PDF demo)
+document_version: '1.0'
+topic: chi_phi_cong_tac
+org_level: 2
+corporation: Appota Group
+company: Công ty B
+department: null
+team: null
+scope: company
+access_scope: company
+owner_unit: Công ty B
+allowed_positions:
+- Employee
+- Manager
+- HR
+access_level: 1
+status: active
+effective_date: 2026-01-01
+expiry_date: '2027-12-31'
+supersedes_document_id: null
+source_file: chi_phi_cong_tac_demo.pdf
+page_number: 1
+section_title: Thời hạn nộp, phê duyệt và thanh toán
+title: Quy trình chi phí công tác Công ty B (PDF demo)
+version: '1.0'
+supersedes: null

@@ -1,6 +1,6 @@
-# Tri thức nội bộ Appota: MVP "đúng người, đúng phạm vi, đúng phiên bản"
+# Tri thức nội bộ Appota: Mission 3
 
-MVP cho **Bài test B, Mission 2**. Toàn bộ dữ liệu là **giả lập**, không dùng dữ liệu thật của Appota.
+Phiên bản cập nhật Mission 3 của MVP **Bài test B**. Toàn bộ dữ liệu là **giả lập**, không dùng dữ liệu thật của Appota.
 
 ## Bài toán
 Cùng một câu hỏi ("Quy định nghỉ phép của tôi?"), hai nhân sự thuộc hai đơn vị khác nhau phải nhận hai câu trả lời khác nhau, chỉ dựa trên tài liệu họ được phép xem và đang có hiệu lực, kèm nguồn kiểm chứng.
@@ -15,37 +15,42 @@ Câu hỏi + người dùng (đơn vị, cấp)
         │
         ▼
  [1] Lọc cứng bằng code (kb/access.py)
-     sai đơn vị / vượt cấp / hết hiệu lực  →  loại
+     sai đơn vị / vượt cấp / archived / chưa tới ngày hiệu lực  →  loại
         │ tài liệu được phép
         ▼
  [2] Retrieval BM25 + ngưỡng (kb/retrieve.py)
-     không đủ độ phủ từ khóa  →  TỪ CHỐI (không gọi LLM)
+     câu hỏi mơ hồ  →  LÀM RÕ; không đủ căn cứ  →  TỪ CHỐI
         │
         ▼
  [3] Chọn bản ưu tiên bằng quy tắc xác định
-     team > phòng > công ty > tập đoàn; cùng cấp thì bản mới hơn;
-     cùng cấp + cùng ngày + khác nội dung  →  CONFLICT
+     team > phòng > công ty > tập đoàn; mỗi cấp chỉ lấy bản mới nhất;
+     đồng hạng ở cấp ưu tiên  →  CONFLICT
         │
         ▼
  [4] LLM (Gemini) diễn đạt, nêu khác biệt riêng/chung, trích [doc_id]
         │
         ▼
- [5] Kiểm tra đầu ra bằng code: nguồn bịa, tài liệu ngoài quyền, thiếu trích dẫn
+ [5] Hiển thị metadata + nội dung nguồn để người dùng kiểm chứng
+     kiểm tra đầu ra bằng code: nguồn bịa, tài liệu ngoài quyền, thiếu trích dẫn
 ```
 
 ## Cấu trúc thư mục
 ```
-data/            11 tài liệu giả lập (.md + front-matter metadata)
+data/            12 tài liệu Markdown và 1 PDF giả lập (PDF có sidecar .pdf.yaml)
 users.json       4 người dùng giả lập (thay cho SSO/IAM)
 kb/loader.py     đọc tài liệu, kiểm tra metadata (file lỗi bị bỏ qua và báo)
-kb/access.py     lọc quyền + phiên bản
-kb/retrieve.py   BM25, ngưỡng từ chối, ưu tiên, phát hiện mâu thuẫn
+kb/access.py     lọc quyền + phiên bản + ngày hiệu lực
+kb/retrieve.py   BM25, làm rõ câu hỏi mơ hồ, ưu tiên, phát hiện mâu thuẫn
 kb/answer.py     prompt, gọi Gemini, kiểm tra đầu ra
 app.py           giao diện Streamlit (có chế độ debug)
-tests/           unit test + bộ kiểm thử Mission 2 (run_tests.py)
+tests/           unit test + bộ kiểm thử Mission 2 và Mission 3
 results/         kết quả kiểm thử
-docs/            trả lời 3 câu hỏi, kịch bản video, checklist nộp bài
+docs/            Before/After, trả lời 3 câu hỏi và kịch bản video
 ```
+
+## Trích dẫn nguồn
+
+Markdown chứa nội dung văn bản và heading, tiện sửa nhưng không có phân trang ổn định; citation dùng tên mục và trích đoạn. PDF giữ bố cục và số trang cố định; loader đọc PDF cùng sidecar `.pdf.yaml` để giữ metadata và trích số trang thực. Repo có `chi_phi_cong_tac_demo.pdf` một trang để thử citation trang 1. PDF nhiều trang hiện chưa được hỗ trợ trong demo.
 
 ## Dữ liệu giả lập
 Mỗi tài liệu có metadata: `doc_id, title, topic, scope (group/company/dept/team), owner_unit, access_level, status (active/archived), effective_date, supersedes`.
@@ -72,37 +77,29 @@ Thử nhanh bằng terminal: `python ask_cli.py an "Quy định nghỉ phép c�
 
 ## Kiểm thử
 ```bash
-python -m unittest discover -s tests -t .      # 37 unit test (1 lỗi đã biết được đánh dấu expectedFailure)
-python tests/run_tests.py                      # 12 tình huống Mission 2; tự dùng Gemini nếu có key
-python tests/run_tests.py --offline            # chỉ phần xác định bằng code, không gọi Gemini
+python -m unittest discover -s tests -t .
+python tests/run_tests.py --offline            # chạy lại 12 tình huống Mission 2, không gọi Gemini
 ```
-Kết quả: `results/test_results_offline.md` (phần xác định bằng code) và `results/test_results_live.md` (khi chạy với Gemini thật).
+Test Mission 3: `python -m unittest tests.test_mission3`. Bộ test Mission 3 bổ sung kiểm tra ngày hiệu lực, nguồn cùng chủ đề khi có ghi đè một phần, câu hỏi mơ hồ, khả năng kiểm chứng nguồn và regression quyền theo user.
 
-Kết quả chế độ offline (12 tình huống): **9 đạt, 3 chưa đạt**.
+Kết quả offline Mission 2: `python tests/run_tests.py --offline` (12/12 đạt sau khi bổ sung alias đồng nghĩa OT). Lần chạy live gần nhất không gọi được Gemini do `CERTIFICATE_VERIFY_FAILED`; các ca cần LLM chưa được đánh giá trong kết quả đó.
 
-| # | Tình huống | Kết quả |
-|---|---|---|
-| T1 | Cùng câu hỏi nghỉ phép, An và Bình | Đạt |
-| T2 | Level thấp hỏi lương Tổng Giám đốc | Đạt |
-| T3 | Chủ đề không có dữ liệu | Đạt |
-| T4 | Bản cũ (archived) không bị dùng | Đạt |
-| T5 | Quy định Marketing đè quy định chung | Đạt |
-| T6 | Prompt injection | Đạt |
-| T7 | Hai bản mâu thuẫn cùng cấp | Đạt |
-| T8 | Quyền theo đơn vị và cấp (khiếu nại) | Đạt |
-| T9 | Câu hỏi mơ hồ "Phạt bao nhiêu?" | **Chưa đạt**: hệ thống tự đoán chủ đề |
-| T10 | Hỏi "tăng ca", tài liệu ghi "OT" | **Chưa đạt**: BM25 không hiểu đồng nghĩa |
-| T11 | Hỏi "OT được trả bao nhiêu tiền?" | **Chưa đạt**: mất tài liệu chung vì quy định riêng chỉ ghi đè một phần |
+Test Mission 3 có ba ca được gắn loại rõ ràng: CR-M3-01 ánh xạ trực tiếp yêu cầu ban đầu rằng thiếu/sai ngày hiệu lực phải fail-closed; edge case ngày hết hạn được tính bao gồm hết ngày lịch; regression bảo đảm người dùng Công ty C không thấy quy định Công ty B. Đây là CR theo yêu cầu trong phiên làm việc này, không phải Change Request bên ngoài đã được reviewer phê duyệt.
 
 ## Hạn chế đã biết
 - **Đồng nghĩa**: "tăng ca" không khớp "OT" (T10). Hướng khắc phục: từ điển đồng nghĩa hoặc embedding đa ngữ.
-- **Ghi đè một phần**: hệ thống coi quy định riêng thay thế quy định chung, trong khi thực tế thường chỉ ghi đè một điều khoản (T11).
-- **Câu hỏi mơ hồ**: không có cơ chế hỏi lại (T9).
-- **Kết quả phụ thuộc cách diễn đạt**: một số câu hỏi đạt do trùng từ ngẫu nhiên (ví dụ "Mức phạt là bao nhiêu?" bị từ chối vì chữ "mức" không có trong tài liệu, không phải vì hệ thống nhận ra sự mơ hồ).
+- **Ghi đè một phần**: Mission 3 giữ cả tài liệu cùng topic trong phạm vi quyền để giảm bỏ sót, nhưng chưa xác định điều khoản nào của quy định chung còn áp dụng.
+- **Câu hỏi mơ hồ**: đã làm rõ một số truy vấn chỉ có từ khái quát như “Phạt bao nhiêu?”; đây là heuristic, không phải phân loại ngôn ngữ tổng quát.
 - **Metadata do con người gán**: nếu gán sai `status`, `scope` hoặc `owner_unit` thì lọc sẽ sai. MVP chỉ kiểm tra thiếu/sai định dạng, chưa kiểm tra đúng/sai nội dung.
 - **Chưa thử indirect injection** (chỉ dẫn nằm trong nội dung tài liệu).
-- Mỗi tài liệu là một chunk; dữ liệu rất nhỏ (11 tài liệu); không có Vector DB, SSO/IAM thật, upload tài liệu, hay phản hồi người dùng.
+- Mỗi tài liệu là một chunk; dữ liệu rất nhỏ (13 tài liệu); không có Vector DB, SSO/IAM thật, upload tài liệu, hay phản hồi người dùng.
 - Danh sách tài liệu bị loại ở chế độ debug chỉ dành cho demo; sản phẩm thật không được hiển thị cho người dùng thường.
+
+## Trạng thái bài nộp
+- Repository: phiên bản Mission 3 đang được cập nhật trên cùng repository.
+- Link bản chạy thử mới: chưa deploy.
+- Video cải tiến ≤5 phút: chưa tạo; nội dung Before/After và kịch bản demo nằm ở `docs/TRA_LOI_3_CAU.md`.
+- Ba câu hỏi bắt buộc và giới hạn còn lại: `docs/TRA_LOI_3_CAU.md`.
 
 ## Bảo mật
 Repo không chứa API key (`.env` nằm trong `.gitignore`). Khi deploy, key đặt trong Streamlit Secrets. Mỗi phiên demo giới hạn 30 câu hỏi để bảo vệ quota.

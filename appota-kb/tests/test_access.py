@@ -21,7 +21,7 @@ def reasons(rejected):
 class TestLoader(unittest.TestCase):
     def test_all_sample_docs_valid(self):
         self.assertEqual(ERRORS, [])
-        self.assertEqual(len(DOCS), 11)
+        self.assertEqual(len(DOCS), 14)
 
     def test_missing_field_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -71,13 +71,13 @@ class TestAccess(unittest.TestCase):
             self.assertEqual(reasons(rejected)[forbidden], "sai đơn vị")
 
     def test_level_blocks_executive_salary(self):
-        # Chi (level 3) thuộc Công ty B nhưng không thuộc Ban Giám đốc
+        # Chi (cấp 3) thuộc Công ty B nhưng không thuộc Ban Giám đốc.
         for uid in ("an", "binh", "chi"):
             allowed, _ = split_allowed(DOCS, USERS[uid])
             self.assertNotIn("SALARY-BOD-v1", ids(allowed))
 
     def test_level_check_independent_of_unit(self):
-        # Người thuộc đúng đơn vị nhưng level thấp vẫn bị chặn
+        # Người thuộc đúng đơn vị nhưng cấp truy cập thấp vẫn bị chặn.
         low = {"id": "x", "name": "x", "units": ["Appota Group", "Ban Giám đốc"], "level": 1}
         allowed, rejected = split_allowed(DOCS, low)
         self.assertNotIn("SALARY-BOD-v1", ids(allowed))

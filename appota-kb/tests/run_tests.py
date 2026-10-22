@@ -1,8 +1,8 @@
-"""Bộ kiểm thử Mission 2. Chạy từ thư mục gốc repo:
+"""Bộ kiểm thử hồi quy Mission 2. Chạy từ thư mục gốc repo:
 
-    python tests/run_tests.py            # tự dùng Gemini nếu có key, nếu không thì chạy offline
-    python tests/run_tests.py --live     # bắt buộc dùng Gemini thật
-    python tests/run_tests.py --offline  # không gọi Gemini
+    python tests/run_tests.py            # Tự dùng Gemini nếu có khóa; nếu không thì chạy ngoại tuyến.
+    python tests/run_tests.py --live     # Bắt buộc gọi Gemini thật.
+    python tests/run_tests.py --offline  # Không gọi Gemini.
 
 Offline: kiểm tra phần xác định bằng code (quyền, phiên bản, retrieval, nội dung prompt).
 Live: kiểm tra thêm lời văn câu trả lời thật của LLM.
@@ -37,7 +37,7 @@ def refused_no_llm(res):
 Q_LEAVE = "Quy định nghỉ phép của tôi như thế nào?"
 
 # Mỗi case: runs = [(user, câu hỏi)], check(rs) -> (ok, mô tả thực tế) kiểm tra phần xác định,
-# live(rs) -> (ok, ghi chú) kiểm tra lời văn LLM (chỉ chạy ở chế độ live).
+# live(rs) -> (ok, ghi chú) kiểm tra lời văn LLM (chỉ chạy ở chế độ gọi Gemini thật).
 CASES = []
 
 
@@ -136,11 +136,11 @@ case(id="T9", kind="Khó: câu hỏi mơ hồ",
      title="Câu hỏi mơ hồ: 'Phạt bao nhiêu?' (không nói phạt gì)",
      runs=[("an", "Phạt bao nhiêu?")],
      expect="Hệ thống không đoán chủ đề: hỏi lại người dùng hoặc nêu rõ câu hỏi chưa đủ rõ.",
-     check=lambda rs: (rs[0]["retrieval"]["status"] == "no_answer",
+     check=lambda rs: (rs[0]["retrieval"]["status"] == "clarify" and not rs[0]["llm_called"],
                        f"Trạng thái: {rs[0]['retrieval']['status']}; chủ đề được chọn: "
                        f"{[t['topic'] for t in rs[0]['retrieval']['topics']]}"),
      live=None,
-     lesson="Retrieval không có cơ chế hỏi lại; nó chọn tài liệu duy nhất có chữ 'phạt' và coi như đã hiểu câu hỏi. Lưu ý: cách hỏi 'Mức phạt là bao nhiêu?' từng được từ chối, nhưng chỉ vì chữ 'mức' không có trong tài liệu đi muộn (đạt do ngẫu nhiên, không phải do hệ thống nhận ra sự mơ hồ). Cần bước phân loại độ mơ hồ hoặc hỏi lại.")
+     lesson="Câu hỏi chỉ có từ khái quát như 'phạt' yêu cầu làm rõ trước khi retrieval/LLM, thay vì suy đoán tài liệu.")
 
 case(id="T10", kind="Thất bại: đồng nghĩa",
      title="Người dùng hỏi 'tăng ca' nhưng tài liệu viết 'OT'",
@@ -158,7 +158,7 @@ case(id="T11", kind="Thất bại: ghi đè một phần",
      check=lambda rs: ({"OT-GROUP-v1", "OT-MKT-v1"} <= pids(rs[0]),
                        f"Tài liệu vào prompt: {sorted(pids(rs[0]))}"),
      live=None,
-     lesson="Quy định riêng thường chỉ ghi đè một phần, nhưng retrieval lọc theo độ phủ từ khóa nên tài liệu chung (có tỷ lệ 150/200/300%) bị loại và An chỉ nhận quy định Marketing. Cách hỏi 'OT được tính lương...' lại lấy đủ cả hai tài liệu chỉ vì trùng chữ 'tính chất': kết quả phụ thuộc cách diễn đạt. Hướng khắc phục: khi đã chọn một chủ đề (topic) thì luôn đưa kèm mọi tài liệu cùng topic trong phạm vi quyền.")
+     lesson="Sau khi xác định chủ đề từ tài liệu phù hợp, hệ thống đưa các nguồn cùng chủ đề mà người dùng được phép xem vào ngữ cảnh, để không bỏ sót quy định chung chỉ vì câu chữ khác nhau.")
 
 case(id="T12", kind="Quyền theo đơn vị",
      title="Bình (Công ty C) hỏi về đi muộn của Công ty B",
@@ -189,7 +189,7 @@ def main():
         for uid, q in c["runs"]:
             res = ask(q, USERS[uid], DOCS, llm)
             if live and res["llm_called"]:
-                time.sleep(6)  # tránh vượt giới hạn tần suất free tier
+                time.sleep(6)  # Tránh vượt giới hạn tần suất của gói miễn phí.
             rs.append(res)
         ok, actual = c["check"](rs)
         live_note = "Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)"

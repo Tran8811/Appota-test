@@ -8,7 +8,7 @@ from kb.loader import load_docs
 
 st.set_page_config(page_title="Tri thức nội bộ Appota (MVP)", layout="wide")
 
-# Khi deploy trên Streamlit Cloud, key nằm trong Secrets
+# Khi triển khai trên Streamlit Cloud, khóa API được lưu trong Secrets.
 try:
     if "GEMINI_API_KEY" in st.secrets:
         os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
@@ -16,8 +16,8 @@ except Exception:
     pass
 
 
-# Đường dẫn theo vị trí của app.py (Streamlit Cloud chạy từ thư mục gốc của repo,
-# nên không được dùng đường dẫn tương đối với thư mục làm việc hiện tại)
+# Xác định đường dẫn dựa trên vị trí của app.py (Streamlit Cloud chạy từ thư mục gốc của kho mã,
+# vì vậy không dùng đường dẫn tương đối theo thư mục làm việc hiện tại).
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -61,7 +61,7 @@ for i, ex in enumerate(examples):
 
 question = st.text_input("Câu hỏi của bạn", key="q")
 
-MAX_QUESTIONS = 30  # bảo vệ quota API khi public link
+MAX_QUESTIONS = 30  # Bảo vệ hạn mức API khi chia sẻ đường dẫn công khai.
 st.session_state.setdefault("n_asked", 0)
 
 if st.button("Hỏi", type="primary") and question.strip():
@@ -73,14 +73,28 @@ if st.button("Hỏi", type="primary") and question.strip():
         res = ask(question.strip(), user, docs)
 
     if res["retrieval"]["status"] == "conflict":
-        st.warning("Phát hiện hai quy định mâu thuẫn cùng cấp. Cần liên hệ bộ phận phụ trách xác nhận.")
+        st.warning("Phát hiện các tài liệu ưu tiên cùng cấp chưa xác định được thứ tự áp dụng. Cần xác minh trước khi kết luận.")
+    elif res["retrieval"]["status"] == "clarify":
+        st.info(res["retrieval"]["reason"])
     st.subheader("Trả lời")
     st.write(res["answer"])
+
+    if res.get("future_documents"):
+        st.info("Có tài liệu liên quan sắp có hiệu lực. Tài liệu này chưa được dùng làm căn cứ cho câu trả lời hiện tại.")
 
     if res["sources"]:
         st.subheader("Nguồn")
         for s in res["sources"]:
-            st.write(f"- `{s['doc_id']}`: {s['title']} (hiệu lực từ {s['effective_date']}) — *{s['role']}*")
+            st.caption(f"{s['doc_id']} · {s['title']} · {s['role']}")
+            st.caption(
+                f"{s['scope']} / {s['owner_unit']} · phiên bản {s['version'] or 'chưa xác định'} · "
+                f"hiệu lực {s['effective_date']} · mục {s['section_title'] or 'chưa xác định'}"
+            )
+            with st.expander(f"Mở trích đoạn · {s['source_file'] or s['doc_id']}"):
+                st.caption(f"Trang {s['page_reference']} · file {s['source_file'] or 'chưa xác định'}")
+                if s["section_title"]:
+                    st.caption(f"Mục: {s['section_title']}")
+                st.caption(s["excerpt"])
     for w in res["warnings"]:
         st.error(w)
 
@@ -89,8 +103,7 @@ if st.button("Hỏi", type="primary") and question.strip():
             st.write("**Gọi LLM:**", res["llm_called"])
             st.write("**Trạng thái retrieval:**", res["retrieval"]["status"],
                      res["retrieval"]["reason"])
-            st.write("**Tài liệu bị loại (chỉ hiển thị ở chế độ debug):**")
-            st.table([{"doc_id": d["doc_id"], "lý do": r} for d, r in res["rejected"]])
+            st.write("**Tài liệu ngoài phạm vi:** không hiển thị thông tin nhận diện tài liệu trong giao diện.")
             for t in res["retrieval"]["topics"]:
                 st.write(f"Chủ đề `{t['topic']}` | ưu tiên: "
                          f"{[d['doc_id'] for d in t['primary']]} | chung hơn: "

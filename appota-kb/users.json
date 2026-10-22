@@ -1,6 +1,62 @@
 [
-  {"id": "an",   "name": "An (Marketing, Công ty B)",      "units": ["Appota Group", "Công ty B", "Marketing"],    "level": 1},
-  {"id": "binh", "name": "Bình (Kỹ thuật, Công ty C)",     "units": ["Appota Group", "Công ty C", "Kỹ thuật"],     "level": 1},
-  {"id": "chi",  "name": "Chi (Nhân sự, Công ty B)",       "units": ["Appota Group", "Công ty B", "Nhân sự"],      "level": 3},
-  {"id": "gd",   "name": "Giám đốc (Ban Giám đốc, Cty B)", "units": ["Appota Group", "Công ty B", "Ban Giám đốc"], "level": 5}
+  {
+    "id": "an",
+    "name": "An (Marketing, Công ty B)",
+    "units": [
+      "Appota Group",
+      "Công ty B",
+      "Marketing"
+    ],
+    "level": 1,
+    "position": "Employee",
+    "corporation": "Appota Group",
+    "company": "Công ty B",
+    "department": "Marketing",
+    "team": null
+  },
+  {
+    "id": "binh",
+    "name": "Bình (Kỹ thuật, Công ty C)",
+    "units": [
+      "Appota Group",
+      "Công ty C",
+      "Kỹ thuật"
+    ],
+    "level": 1,
+    "position": "Employee",
+    "corporation": "Appota Group",
+    "company": "Công ty C",
+    "department": "Kỹ thuật",
+    "team": null
+  },
+  {
+    "id": "chi",
+    "name": "Chi (Nhân sự, Công ty B)",
+    "units": [
+      "Appota Group",
+      "Công ty B",
+      "Nhân sự"
+    ],
+    "level": 3,
+    "position": "HR",
+    "corporation": "Appota Group",
+    "company": "Công ty B",
+    "department": "Nhân sự",
+    "team": null
+  },
+  {
+    "id": "gd",
+    "name": "Giám đốc (Ban Giám đốc, Cty B)",
+    "units": [
+      "Appota Group",
+      "Công ty B",
+      "Ban Giám đốc"
+    ],
+    "level": 5,
+    "position": "Manager",
+    "corporation": "Appota Group",
+    "company": "Công ty B",
+    "department": null,
+    "team": "Ban Giám đốc"
+  }
 ]
