@@ -4,8 +4,8 @@
     "kind": "Làm tốt (bắt buộc)",
     "title": "Cùng câu hỏi nghỉ phép, An (Công ty B) và Bình (Công ty C)",
     "expect": "An nhận 14 ngày (Công ty B) kèm đối chiếu mức chung 12 ngày. Bình nhận 12 ngày (Tập đoàn) và không thấy gì của Công ty B.",
-    "actual": "Tài liệu vào prompt của An: ['LEAVE-CTYB-v1', 'LEAVE-GROUP-v2']; của Bình: ['LEAVE-GROUP-v2']. Lời văn LLM: KHÔNG đạt (An phải nêu 14 và 12; Bình nêu 12 và không nêu 14; không có cảnh báo trích dẫn)",
-    "result": "Chưa đạt",
+    "actual": "Tài liệu vào prompt của An: ['LEAVE-CTYB-v1', 'LEAVE-GROUP-v2']; của Bình: ['LEAVE-GROUP-v2']. Lời văn LLM: đạt (Đạt 10/10 điều kiện)",
+    "result": "Đạt",
     "lesson": "Việc phân biệt được người hỏi nhờ lọc đơn vị bằng code trước khi tới LLM, không phụ thuộc vào việc LLM 'hiểu' người hỏi."
   },
   {
@@ -31,8 +31,8 @@
     "kind": "Phiên bản",
     "title": "Tài liệu nghỉ phép có bản v1 (archived, 10 ngày) và v2 (active, 12 ngày)",
     "expect": "Bản v1 không bao giờ vào prompt hay danh sách nguồn; không xuất hiện '10 ngày'.",
-    "actual": "Bản v1 có trong prompt/nguồn: False. Lời văn LLM: đạt (Câu trả lời không nhắc '10 ngày')",
-    "result": "Đạt",
+    "actual": "Bản v1 có trong prompt/nguồn: False. Lời văn LLM: chưa kiểm tra do lỗi API (xem cảnh báo chi tiết)",
+    "result": "Chưa kiểm tra (API)",
     "lesson": "Phiên bản cũ được loại bằng trường status. Điều này phụ thuộc hoàn toàn vào con người gán đúng status khi nạp tài liệu."
   },
   {
@@ -40,8 +40,8 @@
     "kind": "Quy định riêng đè quy định chung",
     "title": "An hỏi OT: Marketing (30 giờ) và Tập đoàn (40 giờ)",
     "expect": "Dùng quy định Marketing làm chính, nêu thêm mức chung để đối chiếu, trích cả hai nguồn.",
-    "actual": "Ưu tiên: OT-MKT-v1; chung hơn: OT-GROUP-v1. Lời văn LLM: KHÔNG đạt (Nêu 30 và 40, trích cả hai nguồn, không nói giả định 'nếu bạn thuộc')",
-    "result": "Chưa đạt",
+    "actual": "Ưu tiên: OT-MKT-v1; chung hơn: OT-GROUP-v1. Lời văn LLM: đạt (Nêu 30 và 40, trích cả hai nguồn, không nói giả định 'nếu bạn thuộc')",
+    "result": "Đạt",
     "lesson": "Quy tắc 'cấp cụ thể hơn thắng' do code quyết định nên ổn định. Lỗi 'nếu bạn thuộc phòng...' từng xảy ra khi prompt chưa có thông tin người hỏi (đã sửa)."
   },
   {
@@ -58,8 +58,8 @@
     "kind": "Khó: mâu thuẫn",
     "title": "Hai bản nội quy đi muộn cùng cấp, cùng ngày, mức phạt khác nhau (50.000 vs 100.000)",
     "expect": "Hệ thống báo mâu thuẫn, nêu cả hai mức kèm nguồn, không tự chọn, khuyên liên hệ bộ phận phụ trách.",
-    "actual": "Trạng thái: conflict; tài liệu vào prompt: ['DISC-CTYB-A', 'DISC-CTYB-B']. Lời văn LLM: KHÔNG đạt (Nêu cả 50.000 và 100.000 và có nhắc mâu thuẫn/liên hệ)",
-    "result": "Chưa đạt",
+    "actual": "Trạng thái: conflict; tài liệu vào prompt: ['DISC-CTYB-A', 'DISC-CTYB-B']. Lời văn LLM: đạt (Nêu cả 50.000 và 100.000 và có nhắc mâu thuẫn/liên hệ)",
+    "result": "Đạt",
     "lesson": "Phát hiện mâu thuẫn dựa trên metadata (cùng scope + cùng ngày). Mâu thuẫn mà metadata khác nhau (ví dụ ngày khác nhau nhưng thực ra là hai phòng ban) sẽ không bị phát hiện."
   },
   {

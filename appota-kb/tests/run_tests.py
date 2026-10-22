@@ -34,6 +34,38 @@ def refused_no_llm(res):
     return res["answer"] == REFUSAL and not res["llm_called"]
 
 
+def check_t1_live(rs):
+    an, binh = (res["answer"] for res in rs)
+    checks = {
+        "An nêu 14 ngày": "14" in an,
+        "An đối chiếu 12 ngày": "12" in an,
+        "An trích nguồn Công ty B": "LEAVE-CTYB-v1" in an,
+        "An trích nguồn Tập đoàn": "LEAVE-GROUP-v2" in an,
+        "Bình nêu 12 ngày": "12" in binh,
+        "Bình không nêu 14 ngày": "14" not in binh,
+        "Bình trích nguồn Tập đoàn": "LEAVE-GROUP-v2" in binh,
+        "Bình không nhắc tài liệu Công ty B": "LEAVE-CTYB-v1" not in binh,
+        "An không có cảnh báo kiểm chứng": not rs[0]["warnings"],
+        "Bình không có cảnh báo kiểm chứng": not rs[1]["warnings"],
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    detail = f"Đạt {len(checks) - len(failed)}/{len(checks)} điều kiện"
+    if failed:
+        detail += "; chưa đạt: " + ", ".join(failed)
+        warning_details = [
+            f"{uid}: {warning}"
+            for uid, res in zip(("an", "binh"), rs)
+            for warning in res["warnings"]
+        ]
+        if warning_details:
+            detail += "; cảnh báo: " + " | ".join(warning_details)
+    return not failed, detail
+
+
+def api_failed(res):
+    return not res["llm_called"] and any(w.startswith("Lỗi LLM:") for w in res["warnings"])
+
+
 Q_LEAVE = "Quy định nghỉ phép của tôi như thế nào?"
 
 # Mỗi case: runs = [(user, câu hỏi)], check(rs) -> (ok, mô tả thực tế) kiểm tra phần xác định,
@@ -53,10 +85,7 @@ case(id="T1", kind="Làm tốt (bắt buộc)",
          {"LEAVE-CTYB-v1", "LEAVE-GROUP-v2"} <= pids(rs[0]) and "14 ngày" in rs[0]["prompt"]
          and pids(rs[1]) == {"LEAVE-GROUP-v2"} and "14 ngày" not in rs[1]["prompt"],
          f"Tài liệu vào prompt của An: {sorted(pids(rs[0]))}; của Bình: {sorted(pids(rs[1]))}"),
-     live=lambda rs: (
-         "14" in rs[0]["answer"] and "12" in rs[0]["answer"] and "12" in rs[1]["answer"]
-         and "14" not in rs[1]["answer"] and not rs[0]["warnings"] and not rs[1]["warnings"],
-         "An phải nêu 14 và 12; Bình nêu 12 và không nêu 14; không có cảnh báo trích dẫn"),
+     live=check_t1_live,
      lesson="Việc phân biệt được người hỏi nhờ lọc đơn vị bằng code trước khi tới LLM, không phụ thuộc vào việc LLM 'hiểu' người hỏi.")
 
 case(id="T2", kind="Quyền truy cập",
@@ -194,26 +223,33 @@ def main():
         ok, actual = c["check"](rs)
         live_note = "Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval)"
         live_ok = True
-        if live and c.get("live"):
+        api_unavailable = live and c.get("live") and any(api_failed(res) for res in rs)
+        if api_unavailable:
+            live_ok = False
+            live_note = "Lời văn LLM: chưa kiểm tra do lỗi API (xem cảnh báo chi tiết)"
+        elif live and c.get("live"):
             live_ok, live_expect = c["live"](rs)
             live_note = f"Lời văn LLM: {'đạt' if live_ok else 'KHÔNG đạt'} ({live_expect})"
         elif not live and c.get("live"):
             live_note = "Lời văn LLM: chưa kiểm tra (cần chạy --live)"
         passed = ok and live_ok
+        result = "Chưa kiểm tra (API)" if api_unavailable and ok else ("Đạt" if passed else "Chưa đạt")
         rows.append({"id": c["id"], "kind": c["kind"], "title": c["title"], "expect": c["expect"],
-                     "actual": actual + ". " + live_note, "result": "Đạt" if passed else "Chưa đạt",
+                     "actual": actual + ". " + live_note, "result": result,
                      "lesson": c["lesson"]})
         details.append((c, rs))
-        print(f"{c['id']}: {'Đạt' if passed else 'Chưa đạt'} | {c['title']}")
+        print(f"{c['id']}: {result} | {c['title']}")
 
     os.makedirs("results", exist_ok=True)
     n_ok = sum(r["result"] == "Đạt" for r in rows)
+    n_unchecked = sum(r["result"] == "Chưa kiểm tra (API)" for r in rows)
+    n_failed = len(rows) - n_ok - n_unchecked
     md = [f"# Kết quả kiểm thử (chế độ: {mode})", "",
-          f"Tổng: {len(rows)} test | Đạt: {n_ok} | Chưa đạt: {len(rows) - n_ok}", ""]
+          f"Tổng: {len(rows)} test | Đạt: {n_ok} | Chưa đạt: {n_failed} | Chưa kiểm tra do API: {n_unchecked}", ""]
     if not live:
         md += ["> Chế độ offline: chỉ kiểm tra phần xác định bằng code (quyền, phiên bản, retrieval, nội dung prompt). "
                "Lời văn câu trả lời của LLM chưa được kiểm tra. Chạy `python tests/run_tests.py --live` để kiểm tra đầy đủ.", ""]
-    md += ["| # | Loại | Tình huống | Kỳ vọng | Kết quả thực tế | Đạt/Chưa đạt | Điều học được |",
+    md += ["| # | Loại | Tình huống | Kỳ vọng | Kết quả thực tế | Trạng thái | Điều học được |",
            "|---|---|---|---|---|---|---|"]
     for r in rows:
         md.append("| " + " | ".join(x.replace("|", "/") for x in

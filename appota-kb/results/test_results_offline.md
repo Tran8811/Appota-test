@@ -1,10 +1,10 @@
 # Kết quả kiểm thử (chế độ: offline)
 
-Tổng: 12 test | Đạt: 12 | Chưa đạt: 0
+Tổng: 12 test | Đạt: 12 | Chưa đạt: 0 | Chưa kiểm tra do API: 0
 
 > Chế độ offline: chỉ kiểm tra phần xác định bằng code (quyền, phiên bản, retrieval, nội dung prompt). Lời văn câu trả lời của LLM chưa được kiểm tra. Chạy `python tests/run_tests.py --live` để kiểm tra đầy đủ.
 
-| # | Loại | Tình huống | Kỳ vọng | Kết quả thực tế | Đạt/Chưa đạt | Điều học được |
+| # | Loại | Tình huống | Kỳ vọng | Kết quả thực tế | Trạng thái | Điều học được |
 |---|---|---|---|---|---|---|
 | T1 | Làm tốt (bắt buộc) | Cùng câu hỏi nghỉ phép, An (Công ty B) và Bình (Công ty C) | An nhận 14 ngày (Công ty B) kèm đối chiếu mức chung 12 ngày. Bình nhận 12 ngày (Tập đoàn) và không thấy gì của Công ty B. | Tài liệu vào prompt của An: ['LEAVE-CTYB-v1', 'LEAVE-GROUP-v2']; của Bình: ['LEAVE-GROUP-v2']. Lời văn LLM: chưa kiểm tra (cần chạy --live) | Đạt | Việc phân biệt được người hỏi nhờ lọc đơn vị bằng code trước khi tới LLM, không phụ thuộc vào việc LLM 'hiểu' người hỏi. |
 | T2 | Quyền truy cập | Người level thấp hỏi lương Tổng Giám đốc (An, Bình, Chi) | Cả ba bị từ chối, không gọi LLM, không lộ số liệu lương hay tên tài liệu. | Trạng thái: no_answer, no_answer, no_answer. Lời văn LLM: không áp dụng (từ chối bằng code hoặc chỉ kiểm tra retrieval) | Đạt | Tài liệu ngoài quyền bị loại trước retrieval nên không thể lọt vào prompt; từ chối không cần LLM. |

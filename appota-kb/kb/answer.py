@@ -5,6 +5,7 @@ KHÔNG gọi LLM (từ chối cứng bằng code).
 """
 import os
 import re
+import time
 from datetime import date
 
 from kb.access import _date, check_doc, split_allowed
@@ -86,11 +87,23 @@ def gemini_llm(system, prompt):
     if not key:
         raise RuntimeError("Chưa cấu hình GEMINI_API_KEY")
     client = genai.Client(api_key=key)
-    resp = client.models.generate_content(
-        model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
-        contents=prompt,
-        config=types.GenerateContentConfig(system_instruction=system, temperature=0),
-    )
+    for attempt in range(3):
+        try:
+            resp = client.models.generate_content(
+                model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+                contents=prompt,
+                config=types.GenerateContentConfig(system_instruction=system),
+            )
+            break
+        except Exception as e:
+            code = str(getattr(e, "code", "") or getattr(e, "status_code", ""))
+            message = str(e).upper()
+            transient = code in {"500", "502", "503", "504"} or any(
+                f"{status} " in message for status in ("500", "502", "503", "504")
+            )
+            if not transient or attempt == 2:
+                raise
+            time.sleep(1 + attempt * 2)
     return (resp.text or "").strip()
 
 
@@ -117,7 +130,12 @@ def validate_answer(text, provided_ids, all_ids, source_docs=None):
         evidence = " ".join(str(d.get(k, "")) for d in cited_sources
                              for k in ("doc_id", "title", "document_version", "effective_date",
                                        "expiry_date", "page_number", "section_title", "text"))
-        figures = re.findall(r"\b\d+(?:[.,]\d+)*%?\b", text)
+        # Bỏ số thứ tự ở đầu tiêu đề/danh sách (ví dụ "### 4. Nguồn kiểm chứng"):
+        # đây là cấu trúc trình bày, không phải số liệu cần đối chiếu với tài liệu.
+        answer_without_ordinals = re.sub(
+            r"(?m)^\s*(?:#{1,6}\s*)?\d+[.)]\s+", "", text
+        )
+        figures = re.findall(r"\b\d+(?:[.,]\d+)*%?\b", answer_without_ordinals)
         unsupported = sorted({n for n in figures if n not in evidence})
         if unsupported:
             warnings.append("Có số liệu không đối chiếu được với nguồn được trích: "
