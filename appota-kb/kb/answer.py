@@ -40,7 +40,7 @@ def _question_date(question):
             return date(int(local.group(3)), int(local.group(2)), int(local.group(1)))
         except ValueError:
             pass
-    year = re.search(r"(?:năm|trong năm)\s+(20\d{2})\b", question.lower())
+    year = re.search(r"\b(?:năm|trong\s+năm|vào|trong)\s+(20\d{2})\b", question.lower())
     if year:
         return date(int(year.group(1)), 12, 31)
     return None
