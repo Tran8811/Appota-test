@@ -80,13 +80,13 @@ def build_prompt(question, retrieval, user=None):
 
 def gemini_llm(system, prompt):
     from dotenv import load_dotenv
-    from google import genai
     from google.genai import types
+    from kb.gemini_client import create_gemini_client
     load_dotenv()
     key = os.getenv("GEMINI_API_KEY", "").strip()
     if not key:
         raise RuntimeError("Chưa cấu hình GEMINI_API_KEY")
-    client = genai.Client(api_key=key)
+    client = create_gemini_client(key)
     for attempt in range(3):
         try:
             resp = client.models.generate_content(
@@ -105,6 +105,21 @@ def gemini_llm(system, prompt):
                 raise
             time.sleep(1 + attempt * 2)
     return (resp.text or "").strip()
+
+
+def configured_llm(system, prompt):
+    """Gọi nhà cung cấp được cấu hình trong .env (Gemini hoặc Groq)."""
+    from dotenv import load_dotenv
+    from kb.llm_client import call_groq, get_llm_config
+
+    load_dotenv()
+    provider, key, model = get_llm_config()
+    if not key:
+        variable = "GROQ_API_KEY" if provider == "groq" else "GEMINI_API_KEY"
+        raise RuntimeError(f"Chưa cấu hình {variable}")
+    if provider == "groq":
+        return call_groq(system, prompt, key, model)
+    return gemini_llm(system, prompt)
 
 
 def validate_answer(text, provided_ids, all_ids, source_docs=None):
@@ -145,7 +160,7 @@ def validate_answer(text, provided_ids, all_ids, source_docs=None):
 
 def ask(question, user, docs, llm=None, query_date=None):
     """Trả về dict: answer, sources, warnings, llm_called, retrieval, rejected."""
-    llm = llm or gemini_llm
+    llm = llm or configured_llm
     as_of = query_date or _question_date(question) or date.today()
     allowed, rejected = split_allowed(docs, user, as_of)
     r = retrieve(question, allowed)

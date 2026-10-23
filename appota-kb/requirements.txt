@@ -3,3 +3,4 @@ google-genai
 pyyaml
 python-dotenv
 pypdf
+truststore>=0.10.0

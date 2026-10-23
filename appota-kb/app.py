@@ -10,8 +10,14 @@ st.set_page_config(page_title="Tri thức nội bộ Appota (MVP)", layout="wide
 
 # Khi triển khai trên Streamlit Cloud, khóa API được lưu trong Secrets.
 try:
+    if "GROQ_API_KEY" in st.secrets:
+        os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+    if "LLM_PROVIDER" in st.secrets:
+        os.environ["LLM_PROVIDER"] = st.secrets["LLM_PROVIDER"]
     if "GEMINI_API_KEY" in st.secrets:
         os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
+    if "GROQ_MODEL" in st.secrets:
+        os.environ["GROQ_MODEL"] = st.secrets["GROQ_MODEL"]
 except Exception:
     pass
 
