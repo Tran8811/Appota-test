@@ -84,22 +84,13 @@ Test Mission 3: `python -m unittest tests.test_mission3`. Bộ test Mission 3 b�
 
 Kết quả offline Mission 2: `python tests/run_tests.py --offline` (12/12 đạt sau khi bổ sung alias đồng nghĩa OT). Lần chạy live gần nhất không gọi được Gemini do `CERTIFICATE_VERIFY_FAILED`; các ca cần LLM chưa được đánh giá trong kết quả đó.
 
-Test Mission 3 có ba ca được gắn loại rõ ràng: CR-M3-01 ánh xạ trực tiếp yêu cầu ban đầu rằng thiếu/sai ngày hiệu lực phải fail-closed; edge case ngày hết hạn được tính bao gồm hết ngày lịch; regression bảo đảm người dùng Công ty C không thấy quy định Công ty B. Đây là CR theo yêu cầu trong phiên làm việc này, không phải Change Request bên ngoài đã được reviewer phê duyệt.
+Test Mission 3 có ba ca được gắn loại rõ ràng: CR-M3-01 ánh xạ trực tiếp yêu cầu ban đầu rằng thiếu/sai ngày hiệu lực phải fail-closed; edge case ngày hết hạn được tính bao gồm hết ngày lịch, regression bảo đảm người dùng Công ty C không thấy quy định Công ty B. 
 
 ## Hạn chế đã biết
 - **Đồng nghĩa**: "tăng ca" không khớp "OT" (T10). Hướng khắc phục: từ điển đồng nghĩa hoặc embedding đa ngữ.
 - **Ghi đè một phần**: Mission 3 giữ cả tài liệu cùng topic trong phạm vi quyền để giảm bỏ sót, nhưng chưa xác định điều khoản nào của quy định chung còn áp dụng.
 - **Câu hỏi mơ hồ**: đã làm rõ một số truy vấn chỉ có từ khái quát như “Phạt bao nhiêu?”; đây là heuristic, không phải phân loại ngôn ngữ tổng quát.
 - **Metadata do con người gán**: nếu gán sai `status`, `scope` hoặc `owner_unit` thì lọc sẽ sai. MVP chỉ kiểm tra thiếu/sai định dạng, chưa kiểm tra đúng/sai nội dung.
-- **Chưa thử indirect injection** (chỉ dẫn nằm trong nội dung tài liệu).
-- Mỗi tài liệu là một chunk; dữ liệu rất nhỏ (13 tài liệu); không có Vector DB, SSO/IAM thật, upload tài liệu, hay phản hồi người dùng.
-- Danh sách tài liệu bị loại ở chế độ debug chỉ dành cho demo; sản phẩm thật không được hiển thị cho người dùng thường.
-
-## Trạng thái bài nộp
-- Repository: phiên bản Mission 3 đang được cập nhật trên cùng repository.
-- Link bản chạy thử mới: chưa deploy.
-- Video cải tiến ≤5 phút: chưa tạo; nội dung Before/After và kịch bản demo nằm ở `docs/TRA_LOI_3_CAU.md`.
-- Ba câu hỏi bắt buộc và giới hạn còn lại: `docs/TRA_LOI_3_CAU.md`.
 
 ## Bảo mật
 Repo không chứa API key (`.env` nằm trong `.gitignore`). Khi deploy, key đặt trong Streamlit Secrets. Mỗi phiên demo giới hạn 30 câu hỏi để bảo vệ quota.
